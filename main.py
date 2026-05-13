@@ -9,6 +9,7 @@ from pathlib import Path
 from config import Config
 from database import DatabaseManager
 from embeddings import EmbeddingGenerator
+from pinecone_manager import PineconeManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,9 +22,6 @@ def main():
     """Gera embeddings para produtos do banco de dados"""
     
     logger.info("Iniciando geração de embeddings...")
-    
-    os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
-    embeddings_file = os.path.join(Config.OUTPUT_DIR, Config.EMBEDDINGS_FILE)
     
     try:
         # Conectar ao banco
@@ -52,12 +50,19 @@ def main():
             logger.error("Nenhum embedding foi gerado")
             return False
         
-        # Salvar
-        logger.info("Salvando...")
-        generator.save_embeddings_with_data(products_list, embeddings, embeddings_file)
+        # Salvar no Pinecone
+        logger.info("Limpando dados antigos no Pinecone...")
+        pinecone_mgr = PineconeManager()
+        pinecone_mgr.delete_all_vectors()
         
-        logger.info(f"✓ Concluído: {len(products_list)} produtos com embeddings")
-        logger.info(f"Arquivo: {embeddings_file}")
+        logger.info("Enviando para o Pinecone...")
+        success = pinecone_mgr.upsert_vectors(products_list, embeddings)
+        
+        if success:
+            logger.info(f"✓ Concluído: {len(products_list)} produtos enviados para o Pinecone")
+        else:
+            logger.error("Falha ao enviar dados para o Pinecone")
+            return False
         
         return True
         

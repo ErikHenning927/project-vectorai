@@ -18,9 +18,10 @@ class Config:
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "ViT-B/32")  # Modelo CLIP padrão
     BATCH_SIZE = int(os.getenv("BATCH_SIZE", "32"))
     
-    # Storage
-    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./output")
-    EMBEDDINGS_FILE = os.getenv("EMBEDDINGS_FILE", "embeddings.npz")
+    # Pinecone
+    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+    PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "vectorai-index")
+    PINECONE_HOST = os.getenv("PINECONE_HOST")
     
     @classmethod
     def get_connection_params(cls):
