@@ -27,7 +27,7 @@ class Settings:
 
     # ── API ─────────────────────────────────────────────────────────────────
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
-    API_PORT: int = int(os.getenv("API_PORT", "8001"))
+    API_PORT: int = int(os.getenv("API_PORT", "8000"))
 
     @classmethod
     def get_db_url(cls) -> str:

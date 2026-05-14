@@ -45,7 +45,7 @@ embedding-svc/
    ```bash
    docker compose up --build
    ```
-O serviço estará disponível em `http://localhost:8001`.
+O serviço estará disponível em `http://localhost:8000`.
 
 ### Rodando Localmente (Desenvolvimento)
 
@@ -60,7 +60,7 @@ O serviço estará disponível em `http://localhost:8001`.
    ```
 3. Inicie o servidor:
    ```bash
-   uvicorn app.api.server:app --reload --port 8001
+   uvicorn app.api.server:app --reload --port 8000
    ```
 
 ---
@@ -135,12 +135,12 @@ As principais variáveis configuráveis no `.env`:
 ### API
 | Variável | Descrição | Valor Padrão |
 |----------|-----------|--------------|
-| `API_PORT` | Porta da API | `8001` |
+| `API_PORT` | Porta da API | `8000` |
 
 ---
 
 ## 🔗 Endpoints Principais (Swagger)
 
 A documentação interativa da API está disponível em:
-- **Swagger UI**: `http://localhost:8001/docs`
-- **ReDoc**: `http://localhost:8001/redoc`
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`

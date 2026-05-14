@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código
 COPY . .
 
-EXPOSE 8001
+EXPOSE 8000
 
 # Executar migrations e iniciar a API
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.api.server:app --host 0.0.0.0 --port 8001"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.api.server:app --host 0.0.0.0 --port 8000"]
