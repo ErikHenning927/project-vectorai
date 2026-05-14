@@ -89,3 +89,49 @@ class ClipEmbeddingService:
         if image is None:
             return None
         return self._embed(image)
+
+    def embed_image_bytes(self, content: bytes) -> np.ndarray | None:
+        """Gera embedding a partir de bytes de imagem (usado pelo upload de arquivo)."""
+        try:
+            image = Image.open(BytesIO(content)).convert("RGB")
+            return self._embed(image)
+        except Exception as exc:
+            logger.error(f"Erro ao abrir imagem de bytes: {exc}")
+            return None
+
+    def classify_damage(self, content: bytes) -> dict:
+        """Identifica se há avaria usando zero-shot classification com CLIP."""
+        try:
+            image = Image.open(BytesIO(content)).convert("RGB")
+            image_input = self._preprocess(image).unsqueeze(0).to(self._device)
+
+            # Prompts mais específicos para reduzir falsos positivos
+            labels = [
+                "a photo of a broken, scratched, cracked or dented product with clear physical damage",
+                "a professional studio photo of a brand new, pristine, flawless and undamaged product"
+            ]
+            text_tokens = open_clip.tokenize(labels).to(self._device)
+
+            with torch.no_grad():
+                image_features = self._model.encode_image(image_input)
+                text_features = self._model.encode_text(text_tokens)
+
+                image_features /= image_features.norm(dim=-1, keepdim=True)
+                text_features /= text_features.norm(dim=-1, keepdim=True)
+
+                # Cálculo de similaridade
+                text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+                probs = text_probs.cpu().numpy()[0]
+
+            # Aumentamos o threshold para 0.6 para ser mais conservador na detecção de avarias
+            has_damage = bool(probs[0] > 0.6) 
+            confidence = float(probs[0] if has_damage else probs[1])
+
+            return {
+                "has_damage": has_damage,
+                "confidence": round(confidence, 4),
+                "label": "avaria_detectada" if has_damage else "produto_integro"
+            }
+        except Exception as exc:
+            logger.error(f"Erro na classificação de avaria: {exc}")
+            return {"error": str(exc)}

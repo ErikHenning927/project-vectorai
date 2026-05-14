@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Banco de Dados Relacional
+  postgres:
+    image: postgres:16-alpine
+    container_name: vectorai-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-vectorai}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Microserviço de Embeddings (Backend)
+  embedding-svc:
+    build: 
+      context: ./embedding-svc
+      dockerfile: Dockerfile
+    container_name: vectorai-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./embedding-svc/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Aplicativo React (Frontend)
+  vectorai-frontend:
+    build:
+      context: ./vectorai-frontend
+      dockerfile: Dockerfile
+    container_name: vectorai-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - embedding-svc
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
