@@ -33,29 +33,35 @@ logger = logging.getLogger(__name__)
 
 SEED_PRODUCTS = [
     {
-        "url": "https://samsungbr.vtexassets.com/arquivos/ids/331011/image.png",
-        "internal_code": "NP750XDA-KF2BR",
-        "name": "Samsung Book Core i5-1135G7",
-        "reference": "Samsung Book",
-        "category_name": "Notebooks",
+        "url": "https://images.samsung.com/is/image/samsung/p6pim/br/qn65s85fagxzd/gallery/br-oled-tv-qn65s85fagxzd-front-graphite-548309472?$1164_776_PNG$",
+        "internal_code": "QN65S85FAGXZD",
+        "name": "Vision AI TV 65 polegadas OLED 4K S85F 2025",
+        "reference": "TV-OLED",
+        "category_name": "TVS",
     },
     {
         "url": (
-            "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/"
-            "macbook-air-silver-select-201810?wid=900&hei=900&fmt=jpeg&qlt=90&.v=1633027804000"
+            "https://images.samsung.com/is/image/samsung/p6pim/br/feature/165645774/br-feature-samsung-book-543711019?$FB_TYPE_A_JPG$"
         ),
-        "internal_code": "MGN63BZ/A",
-        "name": "MacBook Air M1 13-inch",
-        "reference": "MacBook Air",
-        "category_name": "Notebooks",
+        "internal_code": "GB4PRO",
+        "name": "Galaxy Book4 Pro",
+        "reference": "Galaxy Book4 Pro",
+        "category_name": "NOTEBOOKS",
     },
     {
-        "url": "https://samsungbr.vtexassets.com/arquivos/ids/310118/image.png",
-        "internal_code": "NP930XDB-KF1BR",
-        "name": "Samsung Galaxy Book Pro",
-        "reference": "Galaxy Book Pro",
-        "category_name": "Notebooks",
+        "url": "https://images.samsung.com/is/image/samsung/p6pim/br/f2507/gallery/br-galaxy-watch8-l320-sm-l320nzspzto-547659627?$1164_776_PNG$",
+        "internal_code": "GW8-40BLT",
+        "name": "Galaxy Watch8 (Bluetooth, 40 mm)",
+        "reference": "Galaxy Watch8 (Bluetooth, 40 mm)",
+        "category_name": "WEARABLES",
     },
+    {
+        "url": "https://images.samsung.com/is/image/samsung/p6pim/br/sm-a576bzaezto/gallery/br-galaxy-a57-5g-sm-a576-sm-a576bzaezto-551768727?$1164_776_PNG$",
+        "internal_code": "GALAXY A57 5G (128GB)",
+        "name": "Galaxy A57 5G (128GB)",
+        "reference": "Galaxy A57 5G",
+        "category_name": "SMARTPHONES",
+    }
 ]
 
 
