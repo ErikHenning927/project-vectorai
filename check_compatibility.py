@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
-Verifica compatibilidade de imagem contra embeddings salvos
+Verifica compatibilidade de imagem contra o banco vetorial Pinecone
 Retorna dados do produto se compatível
 """
 
-import numpy as np
 import json
 import logging
-from pathlib import Path
 from PIL import Image
 import requests
 from io import BytesIO
 from embeddings import EmbeddingGenerator
+from pinecone_manager import PineconeManager
 from config import Config
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -30,35 +29,18 @@ def load_image(source: str):
         logger.error(f"Erro ao carregar imagem: {e}")
         return None
 
-def check_image(image_source: str, threshold: float = 0.7, top_n: int = 5) -> dict:
+def check_image(image_source: str, threshold: float = 0.85, top_k: int = 5) -> dict:
     """
-    Verifica compatibilidade de uma imagem
+    Verifica compatibilidade de uma imagem usando Pinecone
     
     Args:
         image_source: URL ou caminho local da imagem
         threshold: Score mínimo de similaridade (0-1)
-        top_n: Número de matches para retornar
+        top_k: Número de matches para retornar
     
     Returns:
         Dict com resultado (compatível, dados do produto, matches)
     """
-    
-    # Carregar dados salvos
-    embeddings_file = Path(Config.OUTPUT_DIR) / Config.EMBEDDINGS_FILE
-    if not embeddings_file.exists():
-        return {"error": f"Arquivo não encontrado: {embeddings_file}"}
-    
-    try:
-        data = np.load(embeddings_file, allow_pickle=True)
-        reference_embeddings = data['embeddings']
-        products = json.loads(str(data['products_json']))
-    except Exception as e:
-        return {"error": f"Erro ao carregar dados: {e}"}
-    
-    # Normalizar embeddings de referência
-    embeddings_norm = reference_embeddings / np.linalg.norm(
-        reference_embeddings, axis=1, keepdims=True
-    )
     
     # Carregar e processar imagem
     image = load_image(image_source)
@@ -74,60 +56,61 @@ def check_image(image_source: str, threshold: float = 0.7, top_n: int = 5) -> di
     except Exception as e:
         return {"error": f"Erro ao gerar embedding: {e}"}
     
-    # Normalizar embedding
-    embedding_norm = embedding / np.linalg.norm(embedding)
-    
-    # Calcular similaridade
-    similarities = embeddings_norm @ embedding_norm
-    
-    # Encontrar melhor match
-    best_idx = np.argmax(similarities)
-    best_score = float(similarities[best_idx])
-    best_product = products[best_idx]
-    
-    # Determinar status
-    if best_score < 0.5:
-        status = "no_reference"
-        message = "Nenhuma referência similar encontrada"
-    elif best_score >= threshold:
-        status = "compatible"
-        message = "Imagem compatível"
-    else:
-        status = "incompatible"
-        message = "Imagem não compatível"
-    
-    # Compatíveis (acima do threshold)
-    compatible_mask = similarities >= threshold
-    compatible_indices = np.argsort(-similarities[compatible_mask])[:top_n]
-    
-    compatible_matches = []
-    for idx in compatible_indices:
-        if similarities[idx] >= threshold:
-            compatible_matches.append({
-                "score": float(similarities[idx]),
-                "product": products[idx]
+    # Buscar no Pinecone
+    try:
+        pinecone_mgr = PineconeManager()
+        results = pinecone_mgr.query_similarity(embedding.tolist(), top_k=top_k)
+        
+        if not results or not results['matches']:
+            return {
+                "status": "no_reference",
+                "message": "Nenhuma referência encontrada no banco",
+                "is_compatible": False,
+                "matches": []
+            }
+        
+        # O Pinecone com métrica Cosine retorna valores entre -1 e 1 (ou 0 e 1 para CLIP normalizado)
+        best_match = results['matches'][0]
+        best_score = float(best_match['score'])
+        best_product = best_match['metadata']
+        
+        # Determinar status
+        if best_score >= threshold:
+            status = "compatible"
+            message = "Imagem compatível"
+        else:
+            status = "incompatible"
+            message = "Imagem não compatível"
+            
+        matches = []
+        for match in results['matches']:
+            matches.append({
+                "score": float(match['score']),
+                "product": match['metadata']
             })
-    
-    return {
-        "status": status,
-        "message": message,
-        "is_compatible": best_score >= threshold,
-        "score": best_score,
-        "threshold": threshold,
-        "product": best_product,
-        "compatible_count": int(np.sum(similarities >= threshold)),
-        "matches": compatible_matches
-    }
+            
+        return {
+            "status": status,
+            "message": message,
+            "is_compatible": best_score >= threshold,
+            "score": best_score,
+            "threshold": threshold,
+            "product": best_product,
+            "matches": matches
+        }
+        
+    except Exception as e:
+        return {"error": f"Erro ao consultar Pinecone: {e}"}
 
 if __name__ == "__main__":
     import sys
     
     if len(sys.argv) < 2:
-        print("Uso: python check_compatibility.py <imagem> [--threshold 0.7]")
+        print("Uso: python check_compatibility.py <imagem> [--threshold 0.85]")
         sys.exit(1)
     
     image_source = sys.argv[1]
-    threshold = 0.7
+    threshold = 0.85
     
     if "--threshold" in sys.argv:
         idx = sys.argv.index("--threshold")
