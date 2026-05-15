@@ -202,9 +202,13 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <h2 style={{ marginTop: '3rem', fontSize: '1.5rem', textAlign: 'center' }}>
-              Melhor Correspondência
-            </h2>
+            <div className="results-header">
+              <h2>Melhor Correspondência</h2>
+              <button className="reset-link" onClick={reset}>
+                <RefreshCw size={16} />
+                Nova Busca
+              </button>
+            </div>
             <div className="results-grid">
               {results.map((match, idx) => (
                 <motion.div
@@ -241,10 +245,6 @@ function App() {
               ))}
             </div>
 
-            <button className="btn" onClick={reset} style={{ background: 'var(--glass)', marginTop: '2rem' }}>
-              <RefreshCw size={18} />
-              Nova Busca
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -324,27 +324,77 @@ function App() {
           </div>
         )}
       </AnimatePresence>
-
       <style>{`
+        .options-panel {
+          margin: 1.5rem 0;
+          display: flex;
+          justify-content: center;
+        }
+        .toggle-label {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          cursor: pointer;
+          font-size: 0.9rem;
+          color: var(--text-muted);
+          transition: color 0.2s;
+        }
+        .toggle-label:hover {
+          color: var(--text);
+        }
+        .toggle-label input {
+          width: 40px;
+          height: 20px;
+          appearance: none;
+          background: rgba(120, 120, 128, 0.16);
+          border-radius: 20px;
+          position: relative;
+          cursor: pointer;
+          transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toggle-label input:checked {
+          background: #34c759; /* Apple Green */
+        }
+        .toggle-label input::before {
+          content: "";
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          background: white;
+          border-radius: 50%;
+          top: 1px;
+          left: 1px;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-label input:checked::before {
+          transform: translateX(20px);
+        }
         .reset-btn {
           position: absolute;
-          top: 1rem;
-          right: 1rem;
-          background: rgba(0, 0, 0, 0.5);
+          top: 0.5rem;
+          right: 0.5rem;
+          background: rgba(255, 255, 255, 0.8);
           border: none;
-          color: white;
-          width: 36px;
-          height: 36px;
+          color: #000;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           backdrop-filter: blur(4px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          z-index: 5;
         }
         .upload-content h3 {
-          font-size: 1.25rem;
-          font-weight: 700;
+          font-size: 1.1rem;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+        }
+        .upload-content p {
+          font-size: 0.85rem;
         }
       `}</style>
     </div>
